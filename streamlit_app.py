@@ -1,4 +1,7 @@
-pip install sentence-transformers
+import subprocess
+
+# Install sentence-transformers if not already installed
+subprocess.check_call(['pip', 'install', 'sentence-transformers'])
 
 import streamlit as st
 from sentence_transformers import SentenceTransformer
