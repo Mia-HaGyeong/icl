@@ -1,5 +1,3 @@
-pip install transformers
-
 import streamlit as st
 from transformers import AutoTokenizer, AutoModel
 import torch
