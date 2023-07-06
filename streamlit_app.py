@@ -1,17 +1,29 @@
+# for Streamlit
+
 import streamlit as st
-from sentence_transformers import SentenceTransformer
-from sklearn.metrics.pairwise import cosine_similarity
+from transformers import AutoTokenizer, AutoModel
+import torch
 
-model = SentenceTransformer('sentence-transformers/paraphrase-xlm-r-multilingual-v1')
+def is_paraphrase(sentence1, sentence2):
+    tokenizer = AutoTokenizer.from_pretrained('sentence-transformers/paraphrase-xlm-r-multilingual-v1')
+    model = AutoModel.from_pretrained('sentence-transformers/paraphrase-xlm-r-multilingual-v1')
 
-@st.cache
-def get_embedding(sentence):
-    return model.encode([sentence])
+    encoded_input = tokenizer([sentence1, sentence2], padding=True, truncation=True, return_tensors='pt')
 
-@st.cache
-def compute_similarity(embedding1, embedding2):
-    return cosine_similarity(embedding1, embedding2)[0][0]
+    with torch.no_grad():
+        model_output = model(**encoded_input)
 
+    sentence_embeddings = mean_pooling(model_output, encoded_input['attention_mask'])
+
+    similarity_score = torch.cosine_similarity(sentence_embeddings[0], sentence_embeddings[1], dim=0)
+
+    threshold = 0.7
+
+    if similarity_score > threshold:
+        return "The sentences are paraphrases."
+    else:
+        return "The sentences are not paraphrases."
+        
 def main():
     st.title("Paraphrase Detection")
 
@@ -19,17 +31,8 @@ def main():
     sentence2 = st.text_input("Enter the second sentence:")
 
     if sentence1 and sentence2:
-        embedding1 = get_embedding(sentence1)
-        embedding2 = get_embedding(sentence2)
-
-        similarity_score = compute_similarity(embedding1, embedding2)
-
-        threshold = 0.7
-
-        if similarity_score > threshold:
-            st.write("The sentences are paraphrases.")
-        else:
-            st.write("The sentences are not paraphrases.")
+        result = is_paraphrase(sentence1, sentence2)
+        st.write(result)
 
 if __name__ == '__main__':
     main()
