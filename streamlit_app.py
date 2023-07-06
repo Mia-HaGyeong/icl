@@ -1,4 +1,4 @@
-pip install -U sentence-transformers
+!pip install -U sentence-transformers
 
 import streamlit as st
 from sentence_transformers import SentenceTransformer
